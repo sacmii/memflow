@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  memflow:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    env_file:
+      - ./.env # Load environment variables from .env file
+    environment:
+      NODE_ENV: development
+      # DATABASE_URL will be loaded from .env or overridden by host environment
+      # Add other development environment variables here
+    ports:
+      - '3000:3000' # Assuming the Node.js app runs on port 3000
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: pnpm dev

@@ -1,7 +1,3 @@
-Of course! Here is a detailed and professionally formatted README file based on the provided project information. I've expanded on the sections, added examples, and structured it to be clear for anyone wanting to use or contribute to the project.
-
----
-
 # 🧠 Memory Bank API for LLMs
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)

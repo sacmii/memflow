@@ -1,0 +1,33 @@
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDEs and other
+# .vscode/ (keeping VS Code settings for team consistency)
+.idea/
+.DS_Store
+*.sublime-project
+*.sublime-workspace
+
+# Build artifacts
+dist/
+build/
+
+# Husky
+# Keep .husky/ for team consistency but ignore temp files
+.husky/_/*
+!.husky/_/husky.sh
