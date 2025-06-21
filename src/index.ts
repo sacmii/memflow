@@ -1,13 +1,13 @@
-import memoryRoutes from '@/routes/memory';
 import dotenv from 'dotenv';
+// Load environment variables from .env file
+dotenv.config();
+// Rest part of the code
+import memoryRoutes from '@/routes/memory';
 import express from 'express';
 // If prod use module-alias for path resolution in js
 if (process.env.NODE_ENV === 'production') {
   require('module-alias/register');
 }
-
-// Load environment variables from .env file
-dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;

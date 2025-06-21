@@ -1,0 +1,250 @@
+{
+  "info": {
+    "_postman_id": "YOUR_POSTMAN_COLLECTION_ID",
+    "name": "MemFlow API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_collection_link": "YOUR_COLLECTION_SHARE_LINK"
+  },
+  "variables": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "memoryId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "SUPABASE_URL",
+      "value": "YOUR_SUPABASE_URL",
+      "type": "string"
+    },
+    {
+      "key": "SUPABASE_ANON_KEY",
+      "value": "YOUR_SUPABASE_ANON_KEY",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication (Pre-requisite)",
+      "description": "This section explains how to obtain an accessToken from Supabase. It will not contain direct requests to *this* backend, but rather instructions for interacting with Supabase's authentication service.",
+      "item": [
+        {
+          "name": "Get Access Token (Instructions Only)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "",
+              "protocol": "",
+              "host": [],
+              "path": []
+            },
+            "description": "To obtain an `accessToken`, you need to authenticate with your Supabase project. This typically involves:\n\n1.  **Using the Supabase Client Library:** If you have a frontend application, use the Supabase JavaScript client (or your language's equivalent) to sign up or sign in a user.\n    ```javascript\n    // Example using Supabase JS client\n    const { data, error } = await supabase.auth.signInWithPassword({\n      email: 'user@example.com',\n      password: 'your-password',\n    });\n    if (data.session) {\n      console.log(data.session.access_token); // This is your accessToken\n    }\n    ```\n2.  **Direct Supabase API Call:** You can also make a direct `POST` request to your Supabase project's `auth/v1/token` endpoint.\n    *   **URL:** `YOUR_SUPABASE_URL/auth/v1/token`\n    *   **Headers:** `Content-Type: application/json`\n    *   **Body (raw, JSON):**\n        ```json\n        {\n            \"email\": \"user@example.com\",\n            \"password\": \"your-password\"\n        }\n        ```\n    *   **Response:** Look for `access_token` in the response.\n\n**Once you have obtained the `access_token`, set it as the value for the `accessToken` collection variable in Postman.**"
+          }
+        },
+        {
+          "name": "Get Access Token (Supabase)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "apikey",
+                "value": "{{SUPABASE_ANON_KEY}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"your-email@example.com\",\n    \"password\": \"your-password\"\n}"
+            },
+            "url": {
+              "raw": "{{SUPABASE_URL}}/auth/v1/token?grant_type=password",
+              "host": ["{{SUPABASE_URL}}"],
+              "path": ["auth", "v1", "token"],
+              "query": [
+                {
+                  "key": "grant_type",
+                  "value": "password"
+                }
+              ]
+            },
+            "description": "Sends a POST request to Supabase to obtain an access token. Replace 'YOUR_SUPABASE_URL', 'your-email@example.com', and 'your-password' with your actual Supabase project URL and user credentials. The obtained access token will be automatically set as the 'accessToken' collection variable."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const responseJson = pm.response.json();",
+                  "if (responseJson && responseJson.access_token) {",
+                  "    pm.collectionVariables.set(\"accessToken\", responseJson.access_token);",
+                  "    console.log(\"Access Token set:\", responseJson.access_token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Memories",
+      "description": "Contains all API endpoints for managing memories. All requests in this folder will require the `Authorization: Bearer {{accessToken}}` header.",
+      "item": [
+        {
+          "name": "Create Memory",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"content\": \"This is a new memory about a great idea for a project.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/memory",
+              "host": ["{{baseUrl}}"],
+              "path": ["memory"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const responseJson = pm.response.json();",
+                  "if (responseJson && responseJson.data && responseJson.data.id) {",
+                  "    pm.collectionVariables.set(\"memoryId\", responseJson.data.id);",
+                  "    console.log(\"Memory ID set:\", responseJson.data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Search Memories",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/memory?limit=5&tag=idea&keyword=project",
+              "host": ["{{baseUrl}}"],
+              "path": ["memory"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "5",
+                  "description": "Maximum number of memories to return.",
+                  "disabled": true
+                },
+                {
+                  "key": "tag",
+                  "value": "idea",
+                  "description": "Filter memories by a specific tag.",
+                  "disabled": true
+                },
+                {
+                  "key": "keyword",
+                  "value": "project",
+                  "description": "Search for memories containing this keyword in their content.",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Memory by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/memory/{{memoryId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["memory", "{{memoryId}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Memory by ID",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"content\": \"This is an updated memory about an amazing idea for a new feature.\",\n    \"tags\": [\"updated\", \"feature\", \"idea\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/memory/{{memoryId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["memory", "{{memoryId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Memory by ID",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/memory/{{memoryId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["memory", "{{memoryId}}"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

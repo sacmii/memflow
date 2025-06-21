@@ -49,40 +49,72 @@ export const generateEmbeddings = async (
   }
 };
 
-export const generateTags = async (content: string): Promise<string[]> => {
+export const processContent = async (
+  originalContent: string
+): Promise<{
+  simplifiedContent: string;
+  embeddings: number[];
+  tags: string[];
+}> => {
   try {
     const openaiInstance = getOpenAIInstance();
-    const prompt = `
-      Analyze the following text and generate 2-3 (Max 5) relevant tags.
+
+    const tagsPrompt = `
+      Generate 2-3 (Max 5) relevant tags for the following content.
       Tags should be:
       - Single words or short phrases
       - Lowercase with hyphens for spaces
       - Highly relevant to content
       - Avoid generic tags
-      - Return tags as a comma-separated list.
+
+      Return the response as a JSON object with one key: "tags" (array of strings).
 
       Content:
       \`\`\`text
-      ${content}
+      ${originalContent}
       \`\`\`
     `;
 
-    const response = await openaiInstance.chat.completions.create({
+    const tagsResponse = await openaiInstance.chat.completions.create({
       model: 'gpt-3.5-turbo',
-      messages: [{ role: 'user', content: prompt }],
-      temperature: 0.7,
+      messages: [{ role: 'user', content: tagsPrompt }],
+      temperature: 0.5,
+      response_format: { type: 'json_object' },
     });
 
-    const tagsString = response.choices[0]?.message?.content;
-    if (!tagsString) {
+    const responseContent = tagsResponse.choices[0]?.message?.content;
+
+    if (!responseContent) {
       throw new Error(
-        'Failed to generate tags: No content in OpenAI response.'
+        'Failed to process content: No content in OpenAI response for tags.'
       );
     }
 
-    return tagsString.split(',').map(tag => tag.trim().toLowerCase());
+    let parsedResponse: { tags: string[] };
+    try {
+      parsedResponse = JSON.parse(responseContent);
+    } catch (jsonError) {
+      throw new Error(
+        `Failed to parse OpenAI response as JSON for tags: ${responseContent}`
+      );
+    }
+
+    const tags = parsedResponse.tags || [];
+
+    // Use originalContent as simplifiedContent
+    const simplifiedContent = originalContent;
+
+    // Generate Embeddings for original content
+    const embeddings = await generateEmbeddings(originalContent);
+    if (!embeddings) {
+      throw new Error(
+        'Failed to generate embeddings for the simplified content.'
+      );
+    }
+
+    return { simplifiedContent, embeddings, tags };
   } catch (error) {
-    console.error('Error generating tags:', error);
-    return [];
+    console.error('Error processing content:', error);
+    throw error; // Re-throw to be handled by the caller
   }
 };
